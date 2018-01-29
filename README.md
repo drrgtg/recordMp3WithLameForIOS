@@ -1,0 +1,2 @@
+# recordMp3WithLameForIOS
+在iOS上录制mp3文件以及扬声器播放切换听筒播放
