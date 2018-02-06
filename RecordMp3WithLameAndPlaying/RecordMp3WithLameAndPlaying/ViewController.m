@@ -11,12 +11,28 @@
 #import <Foundation/Foundation.h>
 #import "RecorderManager.h"
 
-@interface ViewController ()<RecorderManagerDelegate>
+@interface VoiceModel :NSObject
+
+@property (strong, nonatomic) NSURL * voiceUrl;
+@property (strong, nonatomic) NSNumber * durationTime;
+
+
+@end
+
+@implementation VoiceModel
+
+@end
+
+@interface ViewController ()<RecorderManagerDelegate,UITableViewDelegate,UITableViewDataSource>
 @property (weak, nonatomic) IBOutlet UIButton *voiceBtn;
 @property (weak, nonatomic) IBOutlet UIImageView *talksView;
 @property (weak, nonatomic) IBOutlet UILabel *talksLabel;
 @property (weak, nonatomic) IBOutlet UIView *backView;
 @property (strong, nonatomic) RecorderManager * recorder;
+
+@property (strong, nonatomic) NSMutableArray * recordingMp3Arrays;
+@property (weak, nonatomic) IBOutlet UITableView *tableView;
+
 
 @end
 
@@ -37,6 +53,11 @@
     [self.voiceBtn addGestureRecognizer:longPressGesUp];
     self.recorder = [RecorderManager sharedInstance];
     self.recorder.delegate = self;
+    self.recordingMp3Arrays = [NSMutableArray array];
+    
+    [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:NSStringFromClass([UITableViewCell class])];
+    
+    
 }
 
 
@@ -111,15 +132,15 @@
     if (power<0.5) {
         self.talksView.image = [UIImage imageNamed:@"语音-说话-0"];
     }
-    else if (power<0.55) {
+    else if (power<0.60) {
         self.talksView.image = [UIImage imageNamed:@"语音-说话-1"];
         
     }
-    else if (power<0.65) {
+    else if (power<0.70) {
         self.talksView.image = [UIImage imageNamed:@"语音-说话-2"];
         
     }
-    else if (power<0.75) {
+    else if (power<0.80) {
         self.talksView.image = [UIImage imageNamed:@"语音-说话-3"];
         
     }
@@ -135,9 +156,42 @@
 
 - (void)recordAudioFilePath:(NSURL *)filePathUrl andDuration:(float)time{
     NSLog(@"MP3Path: %@/ time:%f",filePathUrl,time);
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        VoiceModel *model = [[VoiceModel alloc] init];
+        model.durationTime = @(round(time));
+        model.voiceUrl = filePathUrl;
+        [self.recordingMp3Arrays addObject:model];
+        [self.tableView reloadData];
+    });
+
 }
 - (void)playRecordFinish:(NSURL *)playUrl {
     NSLog(@"FinishPlayUrl:%@",playUrl);
+    // 是否播放下一条,暂时不处理
+    
+}
+
+#pragma mark - tableView
+
+-(NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+    return 1;
+}
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return self.recordingMp3Arrays.count;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:NSStringFromClass([UITableViewCell class]) forIndexPath:indexPath];
+    VoiceModel *model = self.recordingMp3Arrays[indexPath.row];
+    cell.textLabel.text = [NSString stringWithFormat:@"voice: %ld, duration: %@s",indexPath.row+1,model.durationTime];
+    return cell;
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    VoiceModel *model = self.recordingMp3Arrays[indexPath.row];
+    [[RecorderManager sharedInstance] playMp3AudioWithUrl:model.voiceUrl];
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
 
 @end

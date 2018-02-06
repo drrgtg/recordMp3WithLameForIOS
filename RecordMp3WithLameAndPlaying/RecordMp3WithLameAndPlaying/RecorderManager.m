@@ -231,7 +231,7 @@ static RecorderManager *recorderManager = nil;
 
     
     NSString *cacheLibStr=[NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) lastObject];
-    NSString *fileName = [[yunPath componentsSeparatedByString:@"/"] lastObject];/// 123142.mp3
+    NSString *fileName = [[yunPath componentsSeparatedByString:@"/"] lastObject];
     if (![[NSFileManager defaultManager] fileExistsAtPath:[cacheLibStr stringByAppendingPathComponent:@"mp3voice"]]) {
         [[NSFileManager defaultManager] createDirectoryAtPath:[cacheLibStr stringByAppendingPathComponent:@"mp3voice"] withIntermediateDirectories:YES attributes:nil error:nil];
     }
@@ -292,13 +292,12 @@ static RecorderManager *recorderManager = nil;
         [ConvertAudioFile conventToMp3WithCafFilePath:self.recordUrl.relativePath mp3FilePath:[self.recordUrl.relativePath stringByReplacingOccurrencesOfString:@".caf" withString:@".mp3"] sampleRate:ETRECORD_RATE callback:^(BOOL result) {
             if (result) {
                
-                [self.delegate recordAudioFilePath:[NSURL URLWithString:[self.recordUrl.relativePath stringByReplacingOccurrencesOfString:@".caf" withString:@".mp3"]] andDuration:[self catchRecorderFileSecond:self.recordUrl]];
-                NSError *error = nil;
-                if (![[NSFileManager defaultManager] removeItemAtURL:self.recordUrl error:&error]) {
-                    NSLog(@"%@",error);
-                }
-                NSLog(@"转换成功");
-                [self playMp3AudioWithUrl:[NSURL URLWithString:[self.recordUrl.relativePath stringByReplacingOccurrencesOfString:@".caf" withString:@".mp3"]]];
+                    [self.delegate recordAudioFilePath:[NSURL URLWithString:[self.recordUrl.relativePath stringByReplacingOccurrencesOfString:@".caf" withString:@".mp3"]] andDuration:[self catchRecorderFileSecond:self.recordUrl]];
+                    NSError *error = nil;
+                    if (![[NSFileManager defaultManager] removeItemAtURL:self.recordUrl error:&error]) {
+                        NSLog(@"%@",error);
+                    }
+                    NSLog(@"转换成功");
             }
             else {
                 NSLog(@"转换失败");
